@@ -1,8 +1,10 @@
 local Debug = true
 local Elapsed = tick()
-function Log(Content)
+function Log(Content, ...)
     if not Debug then return end
-    rconsoleinfo("[WizardHub] " .. Content)
+    local Arguments = {...}
+    local DataToOutput = #Arguments == 0 and "[WizardHub] " .. Content or #Arguments > 0 and ("[WizardHub] " .. Content):format(unpack(Arguments))
+    rconsoleinfo(DataToOutput)
 end
 -- Log("Setup: Getting changelog...")
 -- local ChangelogData = game:HttpGet("https://api.wizardhub.xyz/changelog")
@@ -141,15 +143,17 @@ function Scripts:GetScripts()
 end
 
 function Scripts:Resize()
-    local Count = 0
-    local Height = 0
+    local Heights = { }
     for k, v in pairs(Scroller:GetChildren()) do
         if v:IsA("Frame") then
-            if Height == 0 then Height = v.Size.Height.Offset end
-            Count = Count + 1
+            table.insert(Heights, v.Size.Height.Offset)
         end
     end
-    local SizeY = Count * (Height + 14)
+    local CumulativeHeight = 0
+    for k, v in pairs(Heights) do
+        CumulativeHeight = CumulativeHeight + tonumber(v)
+    end
+    local SizeY = CumulativeHeight + 14
     Scroller.CanvasSize = UDim2.new(0, 0, 0, SizeY)
 end
 
@@ -157,6 +161,22 @@ function Scripts:Save()
     return pcall(function()
         writefile("scripts.wizardhub", game:GetService("HttpService"):JSONEncode(self.Table))
     end)
+end
+
+function Scripts:SecureRun(Protected)
+    local Decrypted = ""
+    pcall(function()
+        Decrypted = Libraries.Base64:Decode(Protected)
+    end)
+    return Decrypted
+end
+
+function Scripts:Loadstring(String)
+    local Func = loadstring(String)
+    getfenv(Func).WIZARDHUB_SECURE_RUN = function(Protected)
+        return self:Loadstring(self:SecureRun(Protected))()
+    end
+    return Func
 end
 
 function Scripts:AddScript(ScriptName, ScriptData)
@@ -167,14 +187,11 @@ function Scripts:AddScript(ScriptName, ScriptData)
         local Src = ScriptData.Source
         Src = Src:sub(1, 8) == "https://" and game:HttpGet(Src, true) or Src:sub(1, 7) == "http://" and game:HttpGet(Src, true) or Src
         spawn(function()
-            local Success, Err
-            Success, Err = pcall(function()
-                loadstring(Src)()
+            local S, Err = pcall(function()
+                self:Loadstring(Src)()
             end)
+            if Err then Log("Error in %s: %s", ScriptName, Err) end
         end)
-        if not Success then
-            Log(("Script error in %s: %s"):format(tostring(ScriptName), tostring(Err)))
-        end
     end)
     ScriptFrame.DeleteScript.MouseButton1Click:Connect(function()
         ScriptFrame:Destroy()
@@ -233,15 +250,19 @@ function GlobalScripts:GetScripts()
 end
 
 function GlobalScripts:Resize()
+    local Heights = { }
     local Count = 0
-    local Height = 0
     for k, v in pairs(Scroller_2:GetChildren()) do
         if v:IsA("Frame") then
-            if Height == 0 then Height = v.Size.Height.Offset end
+            table.insert(Heights, v.Size.Height.Offset)
             Count = Count + 1
         end
     end
-    local SizeY = Count * (Height + 14)
+    local CumulativeHeight = 0
+    for k, v in pairs(Heights) do
+        CumulativeHeight = CumulativeHeight + tonumber(v)
+    end
+    local SizeY = CumulativeHeight + 14 + (7 * Count)
     Scroller_2.CanvasSize = UDim2.new(0, 0, 0, SizeY)
 end
 
