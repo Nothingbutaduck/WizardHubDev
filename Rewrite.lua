@@ -6,6 +6,16 @@ function Log(Content, ...)
     local DataToOutput = #Arguments == 0 and "[WizardHub] " .. Content or #Arguments > 0 and ("[WizardHub] " .. Content):format(unpack(Arguments))
     rconsoleinfo(DataToOutput)
 end
+local function ImprovedDataGetter(URL)
+    local Data = game:HttpGet(URL, true)
+    local Threshold = 0
+    repeat
+        wait()
+        Threshold = Threshold + 1
+    until Threshold == 25
+    if not Data then return nil end
+    return Data
+end
 -- Log("Setup: Getting changelog...")
 -- local ChangelogData = game:HttpGet("https://api.wizardhub.xyz/changelog")
 -- repeat wait() until ChangelogData ~= nil
