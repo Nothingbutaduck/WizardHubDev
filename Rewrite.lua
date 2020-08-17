@@ -16,6 +16,18 @@ local function ImprovedDataGetter(URL)
     if not Data then return nil end
     return Data
 end
+local function DetectSirHurt()
+    if XPROTECT and XPROTECT("706ffa2fe1422947a21cd2ca8afef27e43067fd4_eMNWrYnd24UefXQYFyjZPtFVzvqCZlQF6BcoLE9iI6pkqN6V/O+T5zLoM0JMJxsmBnZ6Y/ZFTq4toON2yhhPKQHheF7JMM1/f8GzACfa4pwAA2qPrpIdhXH9P6YQ/9n4kSNnV1MtnKgtE+AiCHM=") == true then
+        return true
+    end
+    return false
+end
+if DetectSirHurt() then
+    game:GetService("Players").LocalPlayer:Kick("Unsupported exploit.")
+    wait(3)
+    game:Shutdown()
+    return
+end
 -- Log("Setup: Getting changelog...")
 -- local ChangelogData = game:HttpGet("https://api.wizardhub.xyz/changelog")
 -- repeat wait() until ChangelogData ~= nil
