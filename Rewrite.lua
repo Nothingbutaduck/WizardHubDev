@@ -18,6 +18,13 @@ if DetectSirHurt() then
     game:Shutdown()
     return
 end
+
+for _,GuiObject in pairs(game:GetService("CoreGui")) do 
+    if GuiObject:IsA("ScreenGui") and GuiObject.Name == "WizardHub" then 
+        GuiObject:Destroy();
+    end 
+end 
+
 -- Log("Setup: Getting changelog...")
 -- local ChangelogData = game:HttpGet("https://api.wizardhub.xyz/changelog")
 -- repeat wait() until ChangelogData ~= nil
@@ -386,6 +393,9 @@ end)
 
 Scripts:Init()
 GlobalScripts:Init()
+
+Data.Text = Libraries.Base64:Decode(game:HttpGet("https://api.wizardhub.xyz/changelogs"))
+
 Log("Setup done!")
 -- // Testing...
 -- spawn(function()
