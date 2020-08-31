@@ -8,7 +8,7 @@ function Log(Content, ...)
     OutputFunction(DataToOutput)
 end
 local function DetectSirHurt()
-    if is_sirhurt_closure then
+    if is_sirhurt_closure and not is_fluxus_closure then
         return true
     end
     return false
@@ -141,6 +141,17 @@ function Effects:SetupRipple(Button)
         ButtonData.IsDown = false
         TweenService:Create(DownColour, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {BackgroundTransparency = 1}):Play()
     end)
+end
+
+-- // API
+--[[
+    Important Note:
+    Anything within this section must be kept untouched, for Cold to work on.
+]]
+Log("Setup: API")
+local ScriptAPI = {}
+function ScriptAPI:Test()
+
 end
 
 -- // Carousel
