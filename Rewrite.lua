@@ -149,9 +149,11 @@ end
     Anything within this section must be kept untouched, for Cold to work on.
 ]]
 Log("Setup: API")
-local ScriptAPI = {}
+local ScriptAPI = {
+    Base64 = loadstring([[local b="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"local c={}local function d(b)local b=tonumber(b)local c=""for d=7,0,-1 do local d=2^d if b>=d then c=c.."1"b=b-d else c=c.."0"end end return c end local function e(b)return tonumber(b,2)end function c:Encode(c)local f=""local g=""local h=""for b=1,string.len(c)do f=f..d(string.byte(string.sub(c,b,b)))end if string.len(f)%3==2 then h="=="f=f..("0"):rep(16)elseif string.len(f)%3==1 then h="="f=f..("0"):rep(8)end for c=1,string.len(f),6 do local c=string.sub(f,c,c+5)local c=tonumber(e(c))g=g..string.sub(b,c+1,c+1)end return string.sub(g,1,-1-string.len(h))..h end function c:Decode(c)local f=c:gsub("%s","")local g=f:gsub("=","")local h=""local i=""for e=1,string.len(g)do local c=string.sub(c,e,e)local b,e=string.find(b,c)if not b then error("Invalid character \""..c.."\" found.")end h=h..string.sub(d(b-1),3)end for b=1,string.len(h),8 do local b=string.sub(h,b,b+7)i=i..string.char(e(b))end local b=f:len()-g:len()if(b==1 or b==2)then i=i:sub(1,-2)end return i end return c]])()
+}
 function ScriptAPI:Test()
-
+    print("Hello World!")
 end
 
 -- // Carousel
@@ -220,7 +222,9 @@ function Scripts:AddScript(ScriptName, ScriptData)
         Src = Src:sub(1, 8) == "https://" and game:HttpGet(Src, true) or Src:sub(1, 7) == "http://" and game:HttpGet(Src, true) or Src
         spawn(function()
             local S, Err = pcall(function()
-                loadstring(Src)()
+                local Func = loadstring(Src)
+                --getfenv(Func).WHUB_API = ScriptAPI
+                Func()
             end)
             if Err then Log("Error in %s: %s", ScriptName, Err) end
         end)
@@ -229,6 +233,7 @@ function Scripts:AddScript(ScriptName, ScriptData)
         if Popups.Visible then return end
         Descriptor_4.Text = ("edit script - %s"):format(ScriptName)
         Popups.Visible = true
+        self.EditingScript = ScriptName
         EditScriptPopup:TweenPosition(UDim2.new(0, 0, 0, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.315)
     end)
     ScriptFrame.DeleteScript.MouseButton1Click:Connect(function()
@@ -323,9 +328,11 @@ function GlobalScripts:GetScripts()
         Threshold = Threshold + 1
     until Threshold == 25
     if not Data then self.Table = { } return end
+    local Response = game:GetService("HttpService"):JSONDecode(Data)
+    if Response.status == "fail" then self.Table = { } return end
     local Table, Success
     Success = pcall(function()
-        Table = game:GetService("HttpService"):JSONDecode(Libraries.Base64:Decode(Data))
+        Table = game:GetService("HttpService"):JSONDecode(Libraries.Base64:Decode(Response.details))
     end)
     self.Table = Success and Table or { }
 end
@@ -501,26 +508,10 @@ end)
 Scripts:Init()
 GlobalScripts:Init()
 
-Data.Text = Libraries.Base64:Decode(game:HttpGet("https://api.wizardhub.xyz/changelogs"))
+Log("Setup: Changelog")
+
+local ChangelogData = game:HttpGet("https://api.wizardhub.xyz/changelogs")
+ChangelogData = game:GetService("HttpService"):JSONDecode(ChangelogData)
+Data.Text = ChangelogData.status == "fail" and "Failed to get changelog data." or Libraries.Base64:Decode(ChangelogData.details)
 
 Log("Setup done!")
--- // Testing...
--- spawn(function()
---     wait(10)
---     LoadStuff.Conn:Disconnect()
---     LoadingText.Text = "Done!"
---     wait(2)
---     Tween(Cover2, 0.5, Enum.EasingDirection.Out, {ImageTransparency = 0}):Play()
---     wait(0.5)
---     Loader:TweenSize(UDim2.new(0, 700, 0, 400), "Out", "Quad", 0.5, false, function()
---         wait(0.5)
---         Main.Visible = true
---         Loader.Shadow:Destroy()
---         wait(0.5)
---         Loader:Destroy()
---         wait(0.5)
---         Tween(Cover, 0.5, Enum.EasingDirection.Out, {ImageTransparency = 1}):Play()
---         wait(0.5)
---         Cover:Destroy()
---     end)
--- end)
